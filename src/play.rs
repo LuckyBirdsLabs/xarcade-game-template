@@ -110,6 +110,8 @@ pub trait PlayModule: crate::storage::StorageModule {
     fn random_below(&self, game_id: u64, modulus: u64) -> u64 {
         let mut input = ManagedBuffer::new();
         input.append(self.blockchain().get_block_random_seed().as_managed_buffer());
+        // This contract's own address: the same game id settled in the same block by two games must not share a draw.
+        input.append(self.blockchain().get_sc_address().as_managed_buffer());
         input.append(&ManagedBuffer::from(&game_id.to_be_bytes()[..]));
         let digest = self.crypto().sha256(&input).to_byte_array();
         let number = u64::from_be_bytes([digest[0], digest[1], digest[2], digest[3], digest[4], digest[5], digest[6], digest[7]]);
